@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![FluxStream Banner](https://img.shields.io/badge/FluxStream-Universal%20Streaming%20Toolkit-ff3366?style=for-the-badge&logo=streamlit&logoColor=white)
+
 [![Live Preview](https://img.shields.io/badge/Live%20Preview-7289da?logo=vercel&logoColor=white&style=for-the-badge)](https://fluxstream-app.vercel.app)
 [![GitHub](https://img.shields.io/badge/GitHub-walterwhite--69-181717?style=for-the-badge&logo=github)](https://github.com/walterwhite-69/Flux-Stream)
 [![Python](https://img.shields.io/badge/Python-3.8+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
