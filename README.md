@@ -4,7 +4,7 @@
 
 ![FluxStream Banner](https://img.shields.io/badge/FluxStream-Universal%20Streaming%20Toolkit-ff3366?style=for-the-badge&logo=streamlit&logoColor=white)
 
-[![Discord](https://img.shields.io/discord/1234567890?color=7289da&label=Discord&logo=discord&logoColor=white&style=for-the-badge)](https://discord.gg/rgWcEw5G8a)
+[![Live Preview](https://img.shields.io/badge/Live%20Preview-7289da?logo=vercel&logoColor=white&style=for-the-badge)](https://fluxstream-app.vercel.app)
 [![GitHub](https://img.shields.io/badge/GitHub-walterwhite--69-181717?style=for-the-badge&logo=github)](https://github.com/walterwhite-69?tab=repositories)
 [![Python](https://img.shields.io/badge/Python-3.8+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![Flask](https://img.shields.io/badge/Flask-2.0+-000000?style=for-the-badge&logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
