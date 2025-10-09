@@ -112,6 +112,13 @@ function formatMacInfo(result) {
     <div style="font-size: 1.2em; font-weight: 700; color: var(--accent); font-family: monospace;">${result.mac}</div>
 </div>`;
     
+    if (result.url) {
+        info += `<div style="background: var(--bg-tertiary); padding: 12px; border-radius: 8px; margin: 10px 0;">
+    <div style="font-size: 0.9em; color: var(--text-secondary);">URL</div>
+    <div style="font-size: 1em; font-weight: 600; color: var(--text-primary); word-break: break-all;">${result.url}</div>
+</div>`;
+    }
+    
     if (result.account_info) {
         info += `<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 12px 0;">`;
         
@@ -263,12 +270,30 @@ async function checkSingleMac() {
 }
 
 async function checkMacList() {
-    const url = document.getElementById('stalker-url').value.trim();
+    const useBulk = document.getElementById('use-bulk-urls').checked;
+    let urls = [];
+    
+    if (useBulk) {
+        const urlListText = document.getElementById('url-list').value.trim();
+        if (!urlListText) {
+            alert('Please enter URLs in the bulk URL list');
+            return;
+        }
+        urls = urlListText.split(/[\n,]+/).map(u => u.trim()).filter(u => u);
+    } else {
+        const url = document.getElementById('stalker-url').value.trim();
+        if (!url) {
+            alert('Please enter URL');
+            return;
+        }
+        urls = [url];
+    }
+    
     const macList = document.getElementById('mac-list').value.trim();
     const threads = parseInt(document.getElementById('threads').value);
     
-    if (!url || !macList) {
-        alert('Please enter both URL and MAC list');
+    if (!macList) {
+        alert('Please enter MAC list');
         return;
     }
     
@@ -282,12 +307,12 @@ async function checkMacList() {
     let currentIndex = 0;
     const displayInterval = setInterval(() => {
         if (currentIndex < macs.length) {
-            updateCurrentMac(macs[currentIndex], url);
+            updateCurrentMac(macs[currentIndex], urls.length === 1 ? urls[0] : `${urls.length} URLs`);
             currentIndex++;
         }
     }, 100);
     
-    updateStatus(`Checking ${macs.length} MACs with ${threads} threads...`);
+    updateStatus(`Checking ${macs.length} MACs against ${urls.length} URL(s) with ${threads} threads...`);
     updateOutput('<div class="checking">⏳ Checking MAC list...</div>');
     
     try {
@@ -297,7 +322,7 @@ async function checkMacList() {
         const response = await fetch(`${API_URL}/check_macs_from_list`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ url, macs, threads, proxies })
+            body: JSON.stringify({ urls, macs, threads, proxies })
         });
         
         const data = await response.json();
@@ -305,19 +330,30 @@ async function checkMacList() {
         clearInterval(displayInterval);
         updateCurrentMac(null);
         
-        let output = `<strong>Checked ${data.results.length} MACs</strong><br><br>`;
+        let output = `<strong>Checked ${macs.length} MACs against ${urls.length} URL(s)</strong><br><br>`;
         
-        if (data.valid_mac_found) {
-            output += formatMacInfo(data.valid_mac_found);
-            output += '<br><strong>✋ Stopped checking after finding valid MAC</strong><br><br>';
+        if (data.valid_macs && data.valid_macs.length > 0) {
+            output += `<div style="margin-bottom: 12px; font-weight: 600; color: var(--success);">
+                ✅ Found ${data.valid_macs.length} Valid MAC${data.valid_macs.length > 1 ? 's' : ''}
+            </div>`;
+            
+            data.valid_macs.forEach(result => {
+                output += formatMacInfo(result);
+            });
         }
         
-        data.results.forEach(result => {
-            output += formatMacInfo(result);
-        });
+        if (data.invalid_macs && data.invalid_macs.length > 0) {
+            output += `<div style="margin-top: 20px; margin-bottom: 12px; font-weight: 600; color: var(--error);">
+                ❌ ${data.invalid_macs.length} Invalid MAC${data.invalid_macs.length > 1 ? 's' : ''}
+            </div>`;
+            
+            data.invalid_macs.forEach(mac => {
+                output += `<div class="invalid-mac">❌ ${mac} - Not valid on any URL</div>`;
+            });
+        }
         
         updateOutput(output);
-        updateStatus(data.valid_mac_found ? 'Valid MAC Found!' : 'Check Complete');
+        updateStatus(`Check Complete: ${data.valid_macs.length} valid, ${data.invalid_macs.length} invalid`);
     } catch (error) {
         clearInterval(displayInterval);
         updateCurrentMac(null);

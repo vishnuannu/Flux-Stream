@@ -100,6 +100,7 @@ def check_stalker_mac(url, mac, proxy=None):
                         return {
                             'valid': has_channels,
                             'mac': mac,
+                            'url': url,
                             'response': data,
                             'account_info': account_info,
                             'channels_info': channels_info,
@@ -111,6 +112,7 @@ def check_stalker_mac(url, mac, proxy=None):
                         return {
                             'valid': False,
                             'mac': mac,
+                            'url': url,
                             'response': response.text[:500],
                             'endpoint': endpoint,
                             'status_code': response.status_code,
@@ -120,6 +122,7 @@ def check_stalker_mac(url, mac, proxy=None):
         return {
             'valid': False,
             'mac': mac,
+            'url': url,
             'response': 'No valid response from any endpoint'
         }
         
@@ -127,6 +130,7 @@ def check_stalker_mac(url, mac, proxy=None):
         return {
             'valid': False,
             'mac': mac,
+            'url': url,
             'error': str(e)
         }
 
@@ -359,6 +363,34 @@ def stalker_to_m3u(url, mac):
         if not channels:
             return None
         
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (QtEmbedded; U; Linux; C) AppleWebKit/533.3 (KHTML, like Gecko) MAG200 stbapp ver: 2 rev: 250 Safari/533.3',
+            'X-User-Agent': 'Model: MAG250; Link: WiFi',
+            'Cookie': f'mac={mac}; stb_lang=en; timezone=Europe/Kiev',
+            'Authorization': f'Bearer {token}' if token else ''
+        }
+        
+        genre_map = {}
+        genre_endpoints = [
+            '/portal.php?type=itv&action=get_genres',
+            '/server/load.php?type=itv&action=get_genres'
+        ]
+        
+        for endpoint in genre_endpoints:
+            try:
+                response = requests.get(base_url + endpoint, headers=headers, timeout=5)
+                if response.status_code == 200:
+                    data = response.json()
+                    genres = data.get('js', data) if 'js' in data else data
+                    if isinstance(genres, list):
+                        for genre in genres:
+                            genre_id = str(genre.get('id', ''))
+                            genre_name = genre.get('title', genre.get('name', 'Unknown'))
+                            genre_map[genre_id] = genre_name
+                        break
+            except:
+                continue
+        
         m3u_content = "#EXTM3U\n"
         
         for channel in channels:
@@ -366,9 +398,11 @@ def stalker_to_m3u(url, mac):
             cmd = channel.get('cmd', '')
             logo = channel.get('logo', '')
             number = channel.get('number', '')
+            tv_genre_id = str(channel.get('tv_genre_id', ''))
+            category_name = genre_map.get(tv_genre_id, 'Uncategorized')
             
             if cmd:
-                m3u_content += f'#EXTINF:-1 tvg-logo="{logo}" tvg-id="{number}",{name}\n'
+                m3u_content += f'#EXTINF:-1 tvg-logo="{logo}" tvg-id="{number}" group-title="{category_name}",{name}\n'
                 
                 if cmd.startswith('ffrt'):
                     stream_url = cmd.replace('ffrt ', '').replace('ffrt', '')
@@ -402,6 +436,15 @@ def xtream_to_m3u(server_url, username, password):
         if 'user_info' not in auth_data:
             return None
         
+        categories_url = f"{base_url}/player_api.php?username={username}&password={password}&action=get_live_categories"
+        categories_response = requests.get(categories_url, timeout=10)
+        
+        category_map = {}
+        if categories_response.status_code == 200:
+            categories = categories_response.json()
+            for cat in categories:
+                category_map[str(cat.get('category_id', ''))] = cat.get('category_name', 'Unknown')
+        
         streams_url = f"{base_url}/player_api.php?username={username}&password={password}&action=get_live_streams"
         streams_response = requests.get(streams_url, timeout=15)
         
@@ -419,11 +462,13 @@ def xtream_to_m3u(server_url, username, password):
             stream_id = stream.get('stream_id', '')
             name = stream.get('name', 'Unknown')
             icon = stream.get('stream_icon', '')
-            category = stream.get('category_id', '')
+            category_id = str(stream.get('category_id', ''))
+            category_name = category_map.get(category_id, 'Uncategorized')
+            container_extension = stream.get('container_extension', 'm3u8')
             
-            stream_url = f"{base_url}/live/{username}/{password}/{stream_id}.m3u8"
+            stream_url = f"{base_url}/live/{username}/{password}/{stream_id}.{container_extension}"
             
-            m3u_content += f'#EXTINF:-1 tvg-logo="{icon}" group-title="{category}",{name}\n'
+            m3u_content += f'#EXTINF:-1 tvg-logo="{icon}" group-title="{category_name}",{name}\n'
             m3u_content += f"{stream_url}\n"
         
         return m3u_content
@@ -571,50 +616,49 @@ def check_macs_from_list():
     global stop_checking, valid_mac_found
     
     data = request.json
-    url = data.get('url')
+    urls = data.get('urls', [data.get('url')]) if data.get('url') else data.get('urls', [])
     macs = data.get('macs', [])
     threads = data.get('threads', 10)
     proxies = data.get('proxies', [])
     
-    if not url or not macs:
-        return jsonify({'error': 'URL and MAC list are required'}), 400
+    if not urls or not macs:
+        return jsonify({'error': 'URL(s) and MAC list are required'}), 400
     
-    stop_checking = False
-    valid_mac_found = None
-    results = []
+    if not isinstance(urls, list):
+        urls = [urls]
     
-    def check_with_random_proxy(mac):
-        global stop_checking, valid_mac_found
-        
-        if stop_checking:
-            return None
+    valid_macs = []
+    invalid_macs = []
+    
+    def check_mac_against_urls(mac):
+        for url in urls:
+            proxy_dict = None
+            if proxies:
+                proxy_string = random.choice(proxies)
+                proxy_dict = parse_proxy(proxy_string)
             
-        proxy_dict = None
-        if proxies:
-            proxy_string = random.choice(proxies)
-            proxy_dict = parse_proxy(proxy_string)
-        
-        result = check_stalker_mac(url, mac, proxy_dict)
-        
-        if result.get('valid'):
-            stop_checking = True
-            valid_mac_found = result
+            result = check_stalker_mac(url, mac, proxy_dict)
             
-        return result
+            if result.get('valid'):
+                return result
+        
+        return None
     
     with ThreadPoolExecutor(max_workers=min(threads, 100)) as executor:
-        futures = [executor.submit(check_with_random_proxy, mac) for mac in macs]
+        futures = {executor.submit(check_mac_against_urls, mac): mac for mac in macs}
         
         for future in as_completed(futures):
-            if stop_checking:
-                break
+            mac = futures[future]
             result = future.result()
             if result:
-                results.append(result)
+                valid_macs.append(result)
+            else:
+                invalid_macs.append(mac)
     
     return jsonify({
-        'results': results,
-        'valid_mac_found': valid_mac_found
+        'valid_macs': valid_macs,
+        'invalid_macs': invalid_macs,
+        'total_checked': len(macs)
     })
 
 @app.route('/system_check', methods=['POST'])
@@ -666,14 +710,25 @@ def system_check():
         return {'valid': False, 'mac': mac}
     
     with ThreadPoolExecutor(max_workers=min(threads, 100)) as executor:
-        futures = [executor.submit(check_random_mac) for _ in range(max_attempts)]
+        futures = []
+        attempts = 0
         
-        for future in as_completed(futures):
+        while attempts < max_attempts and not stop_checking:
+            batch_size = min(threads * 2, max_attempts - attempts)
+            batch_futures = [executor.submit(check_random_mac) for _ in range(batch_size)]
+            futures.extend(batch_futures)
+            attempts += batch_size
+            
+            for future in as_completed(batch_futures):
+                if stop_checking:
+                    executor.shutdown(wait=False, cancel_futures=True)
+                    break
+                result = future.result()
+                if result:
+                    checked_macs.append(result)
+            
             if stop_checking:
                 break
-            result = future.result()
-            if result:
-                checked_macs.append(result)
     
     return jsonify({
         'checked_macs': checked_macs,

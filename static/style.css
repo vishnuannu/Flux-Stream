@@ -524,6 +524,10 @@ header h1::after {
     letter-spacing: 1px;
 }
 
+.hidden {
+    display: none !important;
+}
+
 .proxy-input {
     transition: all 0.5s ease;
     max-height: 200px;
