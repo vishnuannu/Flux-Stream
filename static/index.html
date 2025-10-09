@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="red">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FluxStream - Universal Streaming Toolkit</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="theme-toggle" onclick="toggleTheme()">
+        <svg class="theme-icon theme-icon-red" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+        </svg>
+        <svg class="theme-icon theme-icon-green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+        </svg>
+        <svg class="theme-icon theme-icon-purple" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+        </svg>
+        <svg class="theme-icon theme-icon-sky" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path>
+        </svg>
+        <svg class="theme-icon theme-icon-orange" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+        <svg class="theme-icon theme-icon-pink" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
+            <line x1="9" y1="9" x2="9.01" y2="9"></line>
+            <line x1="15" y1="9" x2="15.01" y2="9"></line>
+        </svg>
+        <svg class="theme-icon theme-icon-yellow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+        </svg>
+    </div>
+
+    <div class="container">
+        <header>
+            <h1>FluxStream</h1>
+            <p class="subtitle">Transform, validate & convert streaming formats in real-time</p>
+        </header>
+
+        <nav class="tab-nav">
+            <button class="tab-btn active" onclick="switchTab('mac', event)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                    <line x1="12" y1="18" x2="12.01" y2="18"></line>
+                </svg>
+                MAC Checker
+            </button>
+            <button class="tab-btn" onclick="switchTab('converter', event)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="16 3 21 3 21 8"></polyline>
+                    <line x1="4" y1="20" x2="21" y2="3"></line>
+                    <polyline points="21 16 21 21 16 21"></polyline>
+                    <line x1="15" y1="15" x2="21" y2="21"></line>
+                    <line x1="4" y1="4" x2="9" y2="9"></line>
+                </svg>
+                Converter
+            </button>
+            <button class="tab-btn" onclick="switchTab('proxy', event)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <circle cx="12" cy="12" r="6"></circle>
+                    <circle cx="12" cy="12" r="2"></circle>
+                </svg>
+                Proxy Checker
+            </button>
+        </nav>
+
+        <div id="mac-tab" class="tab-panel active">
+            <div class="card">
+                <div class="checkbox-field">
+                    <input type="checkbox" id="use-bulk-urls" onchange="toggleBulkUrls()">
+                    <label for="use-bulk-urls">Use Multiple URLs</label>
+                </div>
+                <div id="single-url-container">
+                    <div class="input-field">
+                        <label>Stalker Portal URL</label>
+                        <input type="text" id="stalker-url" placeholder="http://example.com:80/c" value="http://sverigeplay.tv:2095/c/">
+                    </div>
+                </div>
+                <div id="bulk-url-container" class="proxy-input hidden">
+                    <div class="input-field">
+                        <label>URL List (one per line or comma separated)</label>
+                        <textarea id="url-list" placeholder="http://example1.com:80/c&#10;http://example2.com:80/c, http://example3.com:80/c" rows="4"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Single MAC Check</h3>
+                <div class="input-field">
+                    <label>MAC Address</label>
+                    <input type="text" id="custom-mac" placeholder="00:1A:79:AE:57:8A" value="00:1A:79:AE:57:8A">
+                </div>
+                <button class="btn btn-primary" onclick="checkSingleMac()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    Check MAC
+                </button>
+            </div>
+
+            <div class="card">
+                <h3>Batch MAC Check</h3>
+                <div class="input-field">
+                    <label>MAC List (one per line)</label>
+                    <textarea id="mac-list" placeholder="00:1A:79:AE:57:8A&#10;00:1A:79:AE:57:8B&#10;00:1A:79:AE:57:8C" rows="4"></textarea>
+                </div>
+                <button class="btn btn-primary" onclick="checkMacList()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="9 11 12 14 22 4"></polyline>
+                        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                    </svg>
+                    Check List
+                </button>
+            </div>
+
+            <div class="card">
+                <h3>System MAC Generator (00:1A:79:XX:XX:XX)</h3>
+                <div class="input-row">
+                    <div class="input-field">
+                        <label>Max Attempts</label>
+                        <input type="number" id="max-attempts" value="1000" min="1" max="10000">
+                    </div>
+                    <div class="input-field">
+                        <label>Threads (1-100)</label>
+                        <div class="slider-container">
+                            <input type="range" id="threads" min="1" max="100" value="10">
+                            <span class="slider-value" id="thread-value">10</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="checkbox-field">
+                    <input type="checkbox" id="stop-on-first" checked>
+                    <label for="stop-on-first">Stop after finding first valid MAC</label>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="startSystemCheck()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                        </svg>
+                        Start System Check
+                    </button>
+                    <button class="btn btn-secondary" onclick="stopChecking()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="6" y="6" width="12" height="12"></rect>
+                        </svg>
+                        Stop
+                    </button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="checkbox-field">
+                    <input type="checkbox" id="use-proxy" onchange="toggleProxyInput()">
+                    <label for="use-proxy">Use Proxy Rotation</label>
+                </div>
+                <div id="proxy-input-container" class="proxy-input hidden">
+                    <div class="input-field">
+                        <label>Proxy List (IP:PORT or IP:PORT:USER:PASS)</label>
+                        <textarea id="proxy-list" placeholder="127.0.0.1:8080&#10;192.168.1.1:3128:user:pass" rows="4"></textarea>
+                    </div>
+                </div>
+                <div id="current-mac-display" style="display: none; margin-top: 16px; padding: 12px; background: var(--bg-primary); border: 1px solid var(--border); font-family: 'Courier New', monospace;">
+                    <span style="color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px;">Currently Checking:</span>
+                    <div id="current-mac-value" style="color: var(--accent); font-size: 1.1rem; margin-top: 4px; font-weight: 700;">-</div>
+                    <span style="color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; margin-top: 12px; display: block;">Current URL:</span>
+                    <div id="current-url-value" style="color: var(--accent); font-size: 0.9rem; margin-top: 4px; font-weight: 600; word-break: break-all;">-</div>
+                </div>
+            </div>
+
+            <div class="card output-card">
+                <h3>Results</h3>
+                <div id="output" class="output-box">Ready to check MACs...</div>
+                <div class="status-bar">
+                    <div class="status-indicator"></div>
+                    <span id="status">Idle</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="converter-tab" class="tab-panel">
+            <div class="card">
+                <h3>Stalker/MAC to M3U</h3>
+                <div class="input-field">
+                    <label>Stalker Portal URL</label>
+                    <input type="text" id="stalker-convert-url" placeholder="http://example.com:80/c/">
+                </div>
+                <div class="input-field">
+                    <label>MAC Address</label>
+                    <input type="text" id="stalker-convert-mac" placeholder="00:1A:79:AE:57:8A">
+                </div>
+                <button class="btn btn-primary" onclick="convertStalkerToM3U()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="16 3 21 3 21 8"></polyline>
+                        <line x1="4" y1="20" x2="21" y2="3"></line>
+                    </svg>
+                    Convert to M3U
+                </button>
+            </div>
+
+            <div class="card">
+                <h3>Xtream Codes to M3U</h3>
+                <div class="input-field">
+                    <label>Xtream Server URL</label>
+                    <input type="text" id="xtream-url" placeholder="http://example.com:8080">
+                </div>
+                <div class="input-row">
+                    <div class="input-field">
+                        <label>Username</label>
+                        <input type="text" id="xtream-username" placeholder="username">
+                    </div>
+                    <div class="input-field">
+                        <label>Password</label>
+                        <input type="password" id="xtream-password" placeholder="password">
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="convertXtreamToM3U()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="16 3 21 3 21 8"></polyline>
+                        <line x1="4" y1="20" x2="21" y2="3"></line>
+                    </svg>
+                    Convert to M3U
+                </button>
+            </div>
+
+            <div class="card">
+                <h3>M3U Parser & Cleaner</h3>
+                <div class="input-field">
+                    <label>M3U URL or Content</label>
+                    <textarea id="m3u-input" placeholder="http://example.com/playlist.m3u or paste M3U content..." rows="6"></textarea>
+                </div>
+                <button class="btn btn-primary" onclick="parseM3U()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                    </svg>
+                    Parse & Clean M3U
+                </button>
+            </div>
+
+            <div class="card output-card">
+                <h3>Conversion Results</h3>
+                <div id="converter-output" class="output-box">Ready to convert...</div>
+                <button class="btn btn-secondary" onclick="downloadM3U()" id="download-btn" style="display:none; margin-top: 10px;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    Download M3U
+                </button>
+                <div class="status-bar">
+                    <div class="status-indicator"></div>
+                    <span id="converter-status">Idle</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="proxy-tab" class="tab-panel">
+            <div class="card">
+                <h3>Proxy Validation</h3>
+                <div class="input-field">
+                    <label>Proxy List (one per line)</label>
+                    <textarea id="proxy-check-list" placeholder="IP:PORT or IP:PORT:USER:PASS&#10;127.0.0.1:8080&#10;192.168.1.1:3128:user:pass" rows="8"></textarea>
+                </div>
+                <button class="btn btn-primary" onclick="checkProxies()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    Check Proxies
+                </button>
+            </div>
+
+            <div class="proxy-results">
+                <div class="card">
+                    <h3 class="success-title">Working Proxies</h3>
+                    <div id="working-proxies" class="output-box"></div>
+                    <button class="btn btn-secondary" onclick="copyWorkingProxies()" id="copy-proxies-btn" style="display:none; margin-top: 10px;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                        Copy Working Proxies
+                    </button>
+                </div>
+                <div class="card">
+                    <h3 class="error-title">Not Working Proxies</h3>
+                    <div id="not-working-proxies" class="output-box"></div>
+                </div>
+            </div>
+
+            <div class="status-bar">
+                <div class="status-indicator"></div>
+                <span id="proxy-status">Idle</span>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-text">MADE BY WALTER</div>
+    </footer>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
