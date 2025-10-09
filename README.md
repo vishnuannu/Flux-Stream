@@ -3,9 +3,8 @@
 <div align="center">
 
 ![FluxStream Banner](https://img.shields.io/badge/FluxStream-Universal%20Streaming%20Toolkit-ff3366?style=for-the-badge&logo=streamlit&logoColor=white)
-
 [![Live Preview](https://img.shields.io/badge/Live%20Preview-7289da?logo=vercel&logoColor=white&style=for-the-badge)](https://fluxstream-app.vercel.app)
-[![GitHub](https://img.shields.io/badge/GitHub-walterwhite--69-181717?style=for-the-badge&logo=github)](https://github.com/walterwhite-69?tab=repositories)
+[![GitHub](https://img.shields.io/badge/GitHub-walterwhite--69-181717?style=for-the-badge&logo=github)](https://github.com/walterwhite-69/Flux-Stream)
 [![Python](https://img.shields.io/badge/Python-3.8+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![Flask](https://img.shields.io/badge/Flask-2.0+-000000?style=for-the-badge&logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
 
@@ -16,10 +15,6 @@
 </div>
 
 ---
-
-## 📋 Description
-
-FluxStream is a powerful all-in-one streaming toolkit designed for IPTV enthusiasts, developers, and content managers. Built with a stunning cyberpunk-themed interface featuring 7 dynamic color themes, FluxStream provides professional-grade tools for MAC address validation, format conversion, and proxy testing - all through an intuitive web interface.
 
 **Key Capabilities:**
 - 🔍 **MAC Address Validation** - Validate single or bulk MAC addresses against Stalker portals with multi-threaded checking
@@ -75,8 +70,8 @@ Whether you're managing IPTV services, testing streaming infrastructure, or conv
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/walterwhite-69/fluxstream.git
-cd fluxstream
+git clone https://github.com/walterwhite-69/Flux-Stream.git
+cd Flux-Stream
 ```
 
 2. **Install dependencies**
@@ -245,7 +240,7 @@ Join our [Discord community](https://discord.gg/rgWcEw5G8a) to discuss ideas and
 
 - 💬 **Discord:** [Join our server](https://discord.gg/rgWcEw5G8a)
 - 🐙 **GitHub:** [@walterwhite-69](https://github.com/walterwhite-69)
-- 📧 **Issues:** [Report bugs](https://github.com/walterwhite-69/fluxstream/issues)
+- 📧 **Issues:** [Report bugs](https://github.com/walterwhite-69/Flux-Stream/issues)
 
 ---
 
@@ -267,6 +262,6 @@ This tool is for educational and testing purposes only. Users are responsible fo
 
 *Transform your streaming workflow with FluxStream*
 
-[![Star on GitHub](https://img.shields.io/github/stars/walterwhite-69/fluxstream?style=social)](https://github.com/walterwhite-69/fluxstream)
+[![Star on GitHub](https://img.shields.io/github/stars/walterwhite-69/Flux-Stream?style=social)](https://github.com/walterwhite-69/Flux-Stream)
 
 </div>
