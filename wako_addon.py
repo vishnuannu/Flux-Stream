@@ -67,6 +67,23 @@ def _json_get(url, headers=None, params=None):
     response.raise_for_status()
     return response.json()
 
+def _movie_names(imdb_id):
+    """Resolve an IMDb ID to a public movie title."""
+    try:
+        data = _json_get("https://v3-cinemeta.strem.io/meta/movie/" + imdb_id + ".json")
+        meta = data.get("meta", {}) if isinstance(data, dict) else {}
+        names = [meta.get("name", "")]
+        if isinstance(meta.get("aliases"), list):
+            names.extend(meta["aliases"])
+        return [name for name in names if isinstance(name, str) and name.strip()]
+    except Exception:
+        return []
+
+def _norm_title(value):
+    value = str(value or "").lower()
+    value = re.sub(r"\\(.*?\\)", " ", value)
+    return re.sub(r"[^a-z0-9]+", "", value)
+
 def _xtream_movies(config, imdb_id):
     base = config["xtream_url"]
     common = {"username": config["xtream_user"], "password": config["xtream_pass"]}
@@ -76,13 +93,17 @@ def _xtream_movies(config, imdb_id):
         return []
     matches = []
     target = imdb_id.lower()
+    names = [_norm_title(name) for name in _movie_names(imdb_id)]
     for item in data:
         if not isinstance(item, dict):
             continue
         ids = [str(item.get(k, "")).strip().lower() for k in
                ("stream_id", "imdb", "imdb_id", "tmdb", "tmdb_id")]
         # Match only explicit IMDb metadata; never guess by title.
-        if target not in [str(item.get(k, "")).strip().lower() for k in ("imdb", "imdb_id")]:
+        item_name = _norm_title(item.get("name", ""))
+        imdb_match = target in [str(item.get(k, "")).strip().lower() for k in ("imdb", "imdb_id")]
+        title_match = bool(item_name and any(name and (item_name == name or item_name.startswith(name) or name.startswith(item_name)) for name in names))
+        if not (imdb_match or title_match):
             continue
         stream_id = item.get("stream_id")
         if not stream_id:
@@ -131,6 +152,7 @@ def _stalker_movies(config, imdb_id):
     base = config["stalker_url"]
     token = _stalker_token(config)
     target = imdb_id.lower()
+    names = [_norm_title(name) for name in _movie_names(imdb_id)]
     movies = []
     categories = _stalker_request(base, config, token, {"type": "vod", "action": "get_categories"})
     if not isinstance(categories, list):
@@ -153,7 +175,10 @@ def _stalker_movies(config, imdb_id):
                 if not isinstance(item, dict):
                     continue
                 item_imdb = str(item.get("imdb_id") or item.get("imdb") or "").lower()
-                if item_imdb != target:
+                item_name = _norm_title(item.get("name") or item.get("o_name") or "")
+                imdb_match = item_imdb == target
+                title_match = bool(item_name and any(name and (item_name == name or item_name.startswith(name) or name.startswith(item_name)) for name in names))
+                if not (imdb_match or title_match):
                     continue
                 cmd = item.get("cmd") or item.get("id")
                 if not cmd:
