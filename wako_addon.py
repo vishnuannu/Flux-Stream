@@ -102,7 +102,7 @@ def _xtream_movies(config, imdb_id):
         # Match only explicit IMDb metadata; never guess by title.
         item_name = _norm_title(item.get("name", ""))
         imdb_match = target in [str(item.get(k, "")).strip().lower() for k in ("imdb", "imdb_id")]
-        title_match = bool(item_name and any(name and (item_name == name or item_name.startswith(name) or name.startswith(item_name)) for name in names))
+        title_match = bool(item_name and any(name and item_name == name for name in names))
         if not (imdb_match or title_match):
             continue
         stream_id = item.get("stream_id")
