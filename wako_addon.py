@@ -154,53 +154,63 @@ def _stalker_movies(config, imdb_id):
     target = imdb_id.lower()
     names = [_norm_title(name) for name in _movie_names(imdb_id)]
     movies = []
-    categories = _stalker_request(base, config, token, {"type": "vod", "action": "get_categories"})
-    if not isinstance(categories, list):
-        categories = []
-    # Use only the user-supplied MAC; no MAC generation or scanning.
-    for category in categories[:150]:
-        if not isinstance(category, dict):
-            continue
-        cat_id = str(category.get("id", ""))
-        page = 1
-        while page <= 10:
-            data = _stalker_request(base, config, token, {
-                "type": "vod", "action": "get_ordered_list",
-                "genre": cat_id, "p": page, "sortby": "added"
-            })
-            items = data.get("data", []) if isinstance(data, dict) else []
-            if not isinstance(items, list) or not items:
-                break
-            for item in items:
-                if not isinstance(item, dict):
+
+    def matching_items(items):
+        found = []
+        for item in items if isinstance(items, list) else []:
+            if not isinstance(item, dict):
+                continue
+            item_imdb = str(item.get("imdb_id") or item.get("imdb") or "").lower()
+            item_name = _norm_title(item.get("name") or item.get("o_name") or "")
+            imdb_match = item_imdb == target
+            title_match = bool(item_name and any(name and (item_name == name or item_name.startswith(name) or name.startswith(item_name)) for name in names))
+            if imdb_match or title_match:
+                found.append(item)
+        return found
+
+    # First try the portal's all-VOD listing (one request on portals that support it).
+    data = _stalker_request(base, config, token, {
+        "type": "vod", "action": "get_ordered_list", "genre": "*", "p": 1
+    })
+    items = data.get("data", []) if isinstance(data, dict) else []
+    candidates = matching_items(items)
+
+    # Some portals require a category ID. Keep this fallback bounded to avoid
+    # exceeding Wako's stream-request timeout on large portals.
+    if not candidates:
+        categories = _stalker_request(base, config, token, {"type": "vod", "action": "get_categories"})
+        if isinstance(categories, list):
+            for category in categories[:12]:
+                if not isinstance(category, dict):
                     continue
-                item_imdb = str(item.get("imdb_id") or item.get("imdb") or "").lower()
-                item_name = _norm_title(item.get("name") or item.get("o_name") or "")
-                imdb_match = item_imdb == target
-                title_match = bool(item_name and any(name and (item_name == name or item_name.startswith(name) or name.startswith(item_name)) for name in names))
-                if not (imdb_match or title_match):
-                    continue
-                cmd = item.get("cmd") or item.get("id")
-                if not cmd:
-                    continue
-                link_data = _stalker_request(base, config, token, {
-                    "type": "vod", "action": "create_link", "cmd": str(cmd),
-                    "series": "0", "forced_storage": "undefined", "disable_ad": "0"
+                data = _stalker_request(base, config, token, {
+                    "type": "vod", "action": "get_ordered_list",
+                    "genre": str(category.get("id", "")), "p": 1
                 })
-                link = link_data.get("cmd") if isinstance(link_data, dict) else None
-                if not link:
-                    continue
-                link = str(link).replace("ffmpeg ", "").replace("ffrt ", "").strip()
-                if link.startswith("http://") or link.startswith("https://"):
-                    movies.append({
-                        "url": link,
-                        "title": str(item.get("name") or item.get("o_name") or "Movie"),
-                        "source": "Stalker",
-                        "name": "FluxStream"
-                    })
-            if len(items) < 20:
-                break
-            page += 1
+                items = data.get("data", []) if isinstance(data, dict) else []
+                candidates.extend(matching_items(items))
+                if candidates:
+                    break
+
+    for item in candidates[:5]:
+        cmd = item.get("cmd") or item.get("id")
+        if not cmd:
+            continue
+        link_data = _stalker_request(base, config, token, {
+            "type": "vod", "action": "create_link", "cmd": str(cmd),
+            "series": "0", "forced_storage": "undefined", "disable_ad": "0"
+        })
+        link = link_data.get("cmd") if isinstance(link_data, dict) else None
+        if not link:
+            continue
+        link = str(link).replace("ffmpeg ", "").replace("ffrt ", "").strip()
+        if link.startswith("http://") or link.startswith("https://"):
+            movies.append({
+                "url": link,
+                "title": str(item.get("name") or item.get("o_name") or "Movie"),
+                "source": "Stalker",
+                "name": "FluxStream"
+            })
     return movies
 
 def _language_rank(stream):
