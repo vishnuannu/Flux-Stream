@@ -265,3 +265,38 @@ This tool is for educational and testing purposes only. Users are responsible fo
 [![Star on GitHub](https://img.shields.io/github/stars/walterwhite-69/Flux-Stream?style=social)](https://github.com/walterwhite-69/Flux-Stream)
 
 </div>
+---
+
+## 🎬 Wako Movies Add-on
+
+This branch adds a separate movie-only Wako add-on. Existing FluxStream tools and routes remain in place.
+
+### Features
+- Wako manifest and IMDb movie stream endpoint
+- User-configured Xtream Codes VOD and Stalker VOD sources
+- Hindi-first stream ordering when language is identifiable from provider movie titles
+- Duplicate stream URL removal
+- Encrypted, per-install provider configuration
+
+### Deploy
+1. Deploy this repository/branch to a Python host that supports the existing Flask app and provides HTTPS.
+2. Install dependencies from `requirements.txt`.
+3. Generate a Fernet key locally:
+   ```bash
+   python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+   ```
+4. Set the generated value as the private environment variable `WAKO_CONFIG_SECRET` on the hosting provider. Do not commit it or share it.
+5. Deploy/redeploy, then open `https://YOUR-HOST/configure`.
+6. Enter only credentials and portal details for services you own or are authorized to use. Copy the generated manifest URL into Wako: Settings → Extensions → Install an add-on.
+
+### Wako endpoints
+- `GET /manifest.json`
+- `GET /configure`
+- `GET /c/<encrypted-config>/manifest.json`
+- `GET /c/<encrypted-config>/stream/movie/<IMDb-ID>.json`
+
+The configured manifest URL contains an encrypted configuration token and must be treated as private. The provider stream URLs returned to Wako may include provider authentication details depending on the provider's playback URL format. Install and use only with services you are authorized to access. No MAC generation, guessing, or portal enumeration is used by this add-on.
+
+### Limitations
+Provider APIs differ. IMDb-to-title matching depends on public movie metadata and provider titles; unmatched titles or providers that do not expose VOD links will return no stream. Test with one known movie and your own account before relying on it.
+
