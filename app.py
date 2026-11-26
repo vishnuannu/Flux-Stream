@@ -12,6 +12,10 @@ import re
 app = Flask(__name__, static_folder='static')
 CORS(app)
 
+# Wako movie-only add-on (isolated from existing FluxStream routes)
+from wako_addon import wako_bp
+app.register_blueprint(wako_bp)
+
 stop_checking = False
 valid_mac_found = None
 
